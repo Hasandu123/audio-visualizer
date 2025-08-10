@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Visualizer - Music to Motion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            overflow-x: hidden;
+        }
+        .header {
+            text-align: center;
+            padding: 1.5rem;
+            z-index: 10;
+            width: 100%;
+        }
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .visualizer-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            height: 400px;
+            margin: 1rem 0;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        #visualizer {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            margin: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        .file-input-label {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
+        }
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(238, 90, 36, 0.6);
+        }
+        .btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(68, 160, 141, 0.4);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(68, 160, 141, 0.6);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+        }
+        .volume-slider {
+            width: 120px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .volume-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .track-info {
+            text-align: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 90%;
+            max-width: 800px;
+        }
+        .track-name {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .status {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100vh;
+            background: rgba(30, 30, 40, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .settings-panel.open {
+            right: 0;
+        }
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+        }
+        .settings-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        .close-settings {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .close-settings:hover {
+            transform: rotate(90deg);
+        }
+        .setting-group {
+            margin-bottom: 1.5rem;
+        }
+        .setting-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .setting-control {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .setting-control option {
+            background: #333;
+        }
+        .color-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        .color-option.selected {
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .settings-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        .settings-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(30deg);
+        }
+        .shortcuts-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .shortcut-key {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        .fullscreen-btn:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .visualizer-container {
+                height: 300px;
+                margin: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎵 Audio Visualizer</h1>
+        <p>Transform your music into mesmerizing visual art</p>
+    </div>
+    
+    <div class="visualizer-container">
+        <canvas id="visualizer"></canvas>
+        <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
+    </div>
+    
+    <div class="track-info">
+        <div class="track-name" id="trackName">Upload a song to begin visualization</div>
+    </div>
+    
+    <div class="controls">
+        <div class="file-input-wrapper">
+            <input type="file" id="audioFile" accept="audio/*">
+            <label for="audioFile" class="file-input-label">📁 Choose Audio File</label>
+        </div>
+        
+        <button class="btn" id="playBtn" disabled>▶️ Play</button>
+        <button class="btn" id="pauseBtn" disabled>⏸️ Pause</button>
+        <button class="btn" id="micBtn">🎤 Use Microphone</button>
+        
+        <div class="volume-control">
+            <span>🔊</span>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
+            <span id="volumeValue">50%</span>
+        </div>
+    </div>
+    
+    <button class="settings-toggle" id="settingsToggle">⚙️</button>
+    
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h2 class="settings-title">Visualization Settings</h2>
+            <button class="close-settings" id="closeSettings">✕</button>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Visualization Mode</label>
+            <select class="setting-control" id="vizMode">
+                <option value="bars">Frequency Bars</option>
+                <option value="circle">Circular Spectrum</option>
+                <option value="waveform">Waveform</option>
+            </select>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Color Theme</label>
+            <div class="color-options">
+                <div class="color-option selected" data-theme="rainbow" style="background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);"></div>
+                <div class="color-option" data-theme="ocean" style="background: linear-gradient(to right, #1a2980, #26d0ce);"></div>
+                <div class="color-option" data-theme="sunset" style="background: linear-gradient(to right, #ff7e5f, #feb47b);"></div>
+                <div class="color-option" data-theme="forest" style="background: linear-gradient(to right, #134e5e, #71b280);"></div>
+                <div class="color-option" data-theme="fire" style="background: linear-gradient(to right, #f12711, #f5af19);"></div>
+                <div class="color-option" data-theme="purple" style="background: linear-gradient(to right, #667eea, #764ba2);"></div>
+            </div>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Sensitivity: <span id="sensitivityValue">70</span>%</label>
+            <input type="range" class="setting-control" id="sensitivity" min="10" max="100" value="70">
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Smoothing: <span id="smoothingValue">80</span>%</label>
+            <input type="range" class="setting-control" id="smoothing" min="0" max="95" value="80">
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Bar Count: <span id="barCountValue">128</span></label>
+            <input type="range" class="setting-control" id="barCount" min="32" max="256" value="128" step="32">
+        </div>
+        
+        <div class="shortcuts-info">
+            <h3 style="margin-bottom: 0.5rem;">Keyboard Shortcuts</h3>
+            <div class="shortcut-item">
+                <span>Play/Pause</span>
+                <span class="shortcut-key">Space</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Toggle Microphone</span>
+                <span class="shortcut-key">M</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Fullscreen</span>
+                <span class="shortcut-key">F</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Settings</span>
+                <span class="shortcut-key">S</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Volume Up/Down</span>
+                <span class="shortcut-key">↑ / ↓</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        class AudioVisualizer {
+            constructor() {
+                this.canvas = document.getElementById('visualizer');
+                this.ctx = this.canvas.getContext('2d');
+                this.audioContext = null;
+                this.analyser = null;
+                this.source = null;
+                this.audio = null;
+                this.dataArray = null;
+                this.animationId = null;
+                this.isPlaying = false;
+                this.isMicActive = false;
+                
+                // Visualization settings
+                this.vizMode = 'bars';
+                this.colorTheme = 'rainbow';
+                this.sensitivity = 70;
+                this.smoothing = 80;
+                this.barCount = 128;
+                
+                this.setupCanvas();
+                this.setupEventListeners();
+                this.setupAudioContext();
+                this.setupSettings();
+                this.setupKeyboardShortcuts();
+            }
+            
+            setupCanvas() {
+                const resizeCanvas = () => {
+                    const container = this.canvas.parentElement;
+                    this.canvas.width = container.clientWidth * window.devicePixelRatio;
+                    this.canvas.height = container.clientHeight * window.devicePixelRatio;
+                    this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                };
+                
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+            }
+            
+            setupEventListeners() {
+                const fileInput = document.getElementById('audioFile');
+                const playBtn = document.getElementById('playBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
+                const micBtn = document.getElementById('micBtn');
+                const volumeSlider = document.getElementById('volumeSlider');
+                const volumeValue = document.getElementById('volumeValue');
+                const fullscreenBtn = document.getElementById('fullscreenBtn');
+                
+                fileInput.addEventListener('change', (e) => this.loadAudioFile(e.target.files[0]));
+                playBtn.addEventListener('click', () => this.play());
+                pauseBtn.addEventListener('click', () => this.pause());
+                micBtn.addEventListener('click', () => this.toggleMicrophone());
+                fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+                
+                volumeSlider.addEventListener('input', (e) => {
+                    const volume = e.target.value;
+                    volumeValue.textContent = volume + '%';
+                    if (this.audio) {
+                        this.audio.volume = volume / 100;
+                    }
+                });
+            }
+            
+            setupSettings() {
+                const settingsToggle = document.getElementById('settingsToggle');
+                const settingsPanel = document.getElementById('settingsPanel');
+                const closeSettings = document.getElementById('closeSettings');
+                
+                settingsToggle.addEventListener('click', () => {
+                    settingsPanel.classList.add('open');
+                });
+                
+                closeSettings.addEventListener('click', () => {
+                    settingsPanel.classList.remove('open');
+                });
+                
+                // Visualization mode
+                document.getElementById('vizMode').addEventListener('change', (e) => {
+                    this.vizMode = e.target.value;
+                });
+                
+                // Color theme
+                document.querySelectorAll('.color-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+                        option.classList.add('selected');
+                        this.colorTheme = option.dataset.theme;
+                    });
+                });
+                
+                // Sensitivity
+                document.getElementById('sensitivity').addEventListener('input', (e) => {
+                    this.sensitivity = e.target.value;
+                    document.getElementById('sensitivityValue').textContent = e.target.value;
+                });
+                
+                // Smoothing
+                document.getElementById('smoothing').addEventListener('input', (e) => {
+                    this.smoothing = e.target.value;
+                    document.getElementById('smoothingValue').textContent = e.target.value;
+                    if (this.analyser) {
+                        this.analyser.smoothingTimeConstant = this.smoothing / 100;
+                    }
+                });
+                
+                // Bar count
+                document.getElementById('barCount').addEventListener('input', (e) => {
+                    this.barCount = parseInt(e.target.value);
+                    document.getElementById('barCountValue').textContent = e.target.value;
+                    if (this.analyser) {
+                        this.analyser.fftSize = this.barCount * 2;
+                        this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                    }
+                });
+            }
+            
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key.toLowerCase()) {
+                        case ' ':
+                            e.preventDefault();
+                            if (this.isPlaying) {
+                                this.pause();
+                            } else {
+                                this.play();
+                            }
+                            break;
+                        case 'm':
+                            this.toggleMicrophone();
+                            break;
+                        case 'f':
+                            this.toggleFullscreen();
+                            break;
+                        case 's':
+                            document.getElementById('settingsPanel').classList.toggle('open');
+                            break;
+                        case 'arrowup':
+                            e.preventDefault();
+                            this.adjustVolume(5);
+                            break;
+                        case 'arrowdown':
+                            e.preventDefault();
+                            this.adjustVolume(-5);
+                            break;
+                    }
+                });
+            }
+            
+            adjustVolume(change) {
+                const volumeSlider = document.getElementById('volumeSlider');
+                const volumeValue = document.getElementById('volumeValue');
+                const newVolume = Math.max(0, Math.min(100, parseInt(volumeSlider.value) + change));
+                
+                volumeSlider.value = newVolume;
+                volumeValue.textContent = newVolume + '%';
+                
+                if (this.audio) {
+                    this.audio.volume = newVolume / 100;
+                }
+            }
+            
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            }
+            
+            async setupAudioContext() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.analyser = this.audioContext.createAnalyser();
+                    this.analyser.fftSize = this.barCount * 2;
+                    this.analyser.smoothingTimeConstant = this.smoothing / 100;
+                    
+                    const bufferLength = this.analyser.frequencyBinCount;
+                    this.dataArray = new Uint8Array(bufferLength);
+                } catch (error) {
+                    console.error('Error setting up audio context:', error);
+                }
+            }
+            
+            async loadAudioFile(file) {
+                if (!file) return;
+                try {
+                    this.stopMicrophone();
+                    this.stop();
+                    const trackName = document.getElementById('trackName');
+                    trackName.textContent = `📁 ${file.name}`;
+                    this.audio = new Audio();
+                    this.audio.src = URL.createObjectURL(file);
+                    this.audio.volume = document.getElementById('volumeSlider').value / 100;
+                    if (this.source) {
+                        this.source.disconnect();
+                    }
+                    this.source = this.audioContext.createMediaElementSource(this.audio);
+                    this.source.connect(this.analyser);
+                    this.analyser.connect(this.audioContext.destination);
+                    this.audio.addEventListener('ended', () => {
+                        this.isPlaying = false;
+                        this.updateButtons();
+                    });
+                    document.getElementById('playBtn').disabled = false;
+                    document.getElementById('pauseBtn').disabled = false;
+                } catch (error) {
+                    console.error('Error loading audio file:', error);
+                    document.getElementById('trackName').textContent = 'Error loading audio file';
+                }
+            }
+            
+            async toggleMicrophone() {
+                if (this.isMicActive) {
+                    this.stopMicrophone();
+                } else {
+                    await this.startMicrophone();
+                }
+            }
+            
+            async startMicrophone() {
+                try {
+                    this.stop();
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    
+                    if (this.source) {
+                        this.source.disconnect();
+                    }
+                    this.source = this.audioContext.createMediaStreamSource(stream);
+                    this.source.connect(this.analyser);
+                    this.isMicActive = true;
+                    this.isPlaying = true;
+                    
+                    document.getElementById('trackName').textContent = '🎤 Microphone Active';
+                    document.getElementById('micBtn').textContent = '🛑 Stop Microphone';
+                    document.getElementById('playBtn').disabled = true;
+                    document.getElementById('pauseBtn').disabled = true;
+                    this.startVisualization();
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    document.getElementById('trackName').textContent = 'Microphone access denied';
+                }
+            }
+            
+            stopMicrophone() {
+                if (this.source && this.source.mediaStream) {
+                    this.source.mediaStream.getTracks().forEach(track => track.stop());
+                }
+                
+                this.isMicActive = false;
+                this.isPlaying = false;
+                
+                document.getElementById('micBtn').textContent = '🎤 Use Microphone';
+                document.getElementById('playBtn').disabled = this.audio ? false : true;
+                document.getElementById('pauseBtn').disabled = this.audio ? false : true;
+                document.getElementById('trackName').textContent = 'Upload a song to begin visualization';
+                
+                this.stop();
+            }
+            
+            play() {
+                if (this.audio && !this.isPlaying) {
+                    this.audio.play();
+                    this.isPlaying = true;
+                    this.updateButtons();
+                    this.startVisualization();
+                }
+            }
+            
+            pause() {
+                if (this.audio && this.isPlaying) {
+                    this.audio.pause();
+                    this.isPlaying = false;
+                    this.updateButtons();
+                    this.stopVisualization();
+                }
+            }
+            
+            stop() {
+                if (this.audio) {
+                    this.audio.pause();
+                    this.audio.currentTime = 0;
+                }
+                this.isPlaying = false;
+                this.updateButtons();
+                this.stopVisualization();
+            }
+            
+            updateButtons() {
+                const playBtn = document.getElementById('playBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
+                
+                if (this.isMicActive) {
+                    playBtn.disabled = true;
+                    pauseBtn.disabled = true;
+                } else {
+                    playBtn.disabled = this.isPlaying || !this.audio;
+                    pauseBtn.disabled = !this.isPlaying || !this.audio;
+                }
+            }
+            
+            startVisualization() {
+                if (!this.analyser) return;
+                
+                const draw = () => {
+                    this.animationId = requestAnimationFrame(draw);
+                    this.analyser.getByteFrequencyData(this.dataArray);
+                    
+                    switch(this.vizMode) {
+                        case 'bars':
+                            this.drawBars();
+                            break;
+                        case 'circle':
+                            this.drawCircle();
+                            break;
+                        case 'waveform':
+                            this.drawWaveform();
+                            break;
+                    }
+                };
+                
+                draw();
+            }
+            
+            stopVisualization() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                this.clearCanvas();
+            }
+            
+            drawBars() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                
+                this.ctx.clearRect(0, 0, width, height);
+                
+                const barWidth = width / this.dataArray.length * 2;
+                let x = 0;
+                
+                for (let i = 0; i < this.dataArray.length; i++) {
+                    const barHeight = (this.dataArray[i] / 255) * height * (this.sensitivity / 100);
+                    
+                    // Create gradient for each bar
+                    const gradient = this.ctx.createLinearGradient(0, height, 0, height - barHeight);
+                    
+                    // Apply color theme
+                    switch(this.colorTheme) {
+                        case 'rainbow':
+                            const hue = (i / this.dataArray.length) * 360;
+                            gradient.addColorStop(0, `hsl(${hue}, 70%, 50%)`);
+                            gradient.addColorStop(1, `hsl(${hue}, 70%, 80%)`);
+                            break;
+                        case 'ocean':
+                            gradient.addColorStop(0, '#1a2980');
+                            gradient.addColorStop(1, '#26d0ce');
+                            break;
+                        case 'sunset':
+                            gradient.addColorStop(0, '#ff7e5f');
+                            gradient.addColorStop(1, '#feb47b');
+                            break;
+                        case 'forest':
+                            gradient.addColorStop(0, '#134e5e');
+                            gradient.addColorStop(1, '#71b280');
+                            break;
+                        case 'fire':
+                            gradient.addColorStop(0, '#f12711');
+                            gradient.addColorStop(1, '#f5af19');
+                            break;
+                        case 'purple':
+                            gradient.addColorStop(0, '#667eea');
+                            gradient.addColorStop(1, '#764ba2');
+                            break;
+                    }
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+                    
+                    // Add glow effect
+                    if (this.colorTheme === 'rainbow') {
+                        const hue = (i / this.dataArray.length) * 360;
+                        this.ctx.shadowColor = `hsl(${hue}, 70%, 60%)`;
+                    } else {
+                        this.ctx.shadowColor = gradient;
+                    }
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
+                    this.ctx.shadowBlur = 0;
+                    
+                    x += barWidth;
+                }
+            }
+            
+            drawCircle() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const radius = Math.min(width, height) * 0.3;
+                
+                this.ctx.clearRect(0, 0, width, height);
+                
+                const bars = this.dataArray.length;
+                const barWidth = (2 * Math.PI) / bars;
+                
+                for (let i = 0; i < bars; i++) {
+                    const barHeight = (this.dataArray[i] / 255) * radius * (this.sensitivity / 100);
+                    const angle = barWidth * i;
+                    
+                    const x1 = centerX + Math.cos(angle) * radius;
+                    const y1 = centerY + Math.sin(angle) * radius;
+                    const x2 = centerX + Math.cos(angle) * (radius + barHeight);
+                    const y2 = centerY + Math.sin(angle) * (radius + barHeight);
+                    
+                    // Apply color theme
+                    switch(this.colorTheme) {
+                        case 'rainbow':
+                            const hue = (i / bars) * 360;
+                            this.ctx.strokeStyle = `hsl(${hue}, 70%, 60%)`;
+                            this.ctx.shadowColor = `hsl(${hue}, 70%, 60%)`;
+                            break;
+                        case 'ocean':
+                            this.ctx.strokeStyle = '#26d0ce';
+                            this.ctx.shadowColor = '#26d0ce';
+                            break;
+                        case 'sunset':
+                            this.ctx.strokeStyle = '#feb47b';
+                            this.ctx.shadowColor = '#feb47b';
+                            break;
+                        case 'forest':
+                            this.ctx.strokeStyle = '#71b280';
+                            this.ctx.shadowColor = '#71b280';
+                            break;
+                        case 'fire':
+                            this.ctx.strokeStyle = '#f5af19';
+                            this.ctx.shadowColor = '#f5af19';
+                            break;
+                        case 'purple':
+                            this.ctx.strokeStyle = '#764ba2';
+                            this.ctx.shadowColor = '#764ba2';
+                            break;
+                    }
+                    
+                    this.ctx.lineWidth = 3;
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x1, y1);
+                    this.ctx.lineTo(x2, y2);
+                    this.ctx.stroke();
+                }
+            }
+            
+            drawWaveform() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                
+                this.ctx.clearRect(0, 0, width, height);
+                
+                // Get time domain data for waveform
+                const waveData = new Uint8Array(this.analyser.frequencyBinCount);
+                this.analyser.getByteTimeDomainData(waveData);
+                
+                this.ctx.lineWidth = 2;
+                
+                // Apply color theme
+                switch(this.colorTheme) {
+                    case 'rainbow':
+                        const gradient = this.ctx.createLinearGradient(0, 0, width, 0);
+                        gradient.addColorStop(0, 'red');
+                        gradient.addColorStop(0.17, 'orange');
+                        gradient.addColorStop(0.33, 'yellow');
+                        gradient.addColorStop(0.5, 'green');
+                        gradient.addColorStop(0.67, 'blue');
+                        gradient.addColorStop(0.83, 'indigo');
+                        gradient.addColorStop(1, 'violet');
+                        this.ctx.strokeStyle = gradient;
+                        this.ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+                        break;
+                    case 'ocean':
+                        this.ctx.strokeStyle = '#26d0ce';
+                        this.ctx.shadowColor = '#26d0ce';
+                        break;
+                    case 'sunset':
+                        this.ctx.strokeStyle = '#feb47b';
+                        this.ctx.shadowColor = '#feb47b';
+                        break;
+                    case 'forest':
+                        this.ctx.strokeStyle = '#71b280';
+                        this.ctx.shadowColor = '#71b280';
+                        break;
+                    case 'fire':
+                        this.ctx.strokeStyle = '#f5af19';
+                        this.ctx.shadowColor = '#f5af19';
+                        break;
+                    case 'purple':
+                        this.ctx.strokeStyle = '#764ba2';
+                        this.ctx.shadowColor = '#764ba2';
+                        break;
+                }
+                
+                this.ctx.shadowBlur = 10;
+                
+                this.ctx.beginPath();
+                
+                const sliceWidth = width / waveData.length;
+                let x = 0;
+                
+                for (let i = 0; i < waveData.length; i++) {
+                    const v = waveData[i] / 128.0;
+                    const y = v * height / 2 * (this.sensitivity / 100);
+                    
+                    if (i === 0) {
+                        this.ctx.moveTo(x, y);
+                    } else {
+                        this.ctx.lineTo(x, y);
+                    }
+                    
+                    x += sliceWidth;
+                }
+                
+                this.ctx.stroke();
+            }
+            
+            clearCanvas() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                this.ctx.clearRect(0, 0, width, height);
+            }
+        }
+        
+        // Initialize the visualizer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new AudioVisualizer();
+        });
+    </script>
+</body>
+</html>
