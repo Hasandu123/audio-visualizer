@@ -558,6 +558,124 @@
             text-align: center;
         }
         
+        .download-btn {
+            background: linear-gradient(45deg, #00f260, #0575e6);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(0, 242, 96, 0.4);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .download-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .download-btn:hover::before {
+            left: 100%;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 242, 96, 0.6);
+        }
+        
+        .background-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .background-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .background-option:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .background-option input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .background-option label {
+            cursor: pointer;
+            flex: 1;
+        }
+        
+        .color-picker-wrapper {
+            display: none;
+            margin-top: 10px;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .color-picker-wrapper.active {
+            display: flex;
+        }
+        
+        .color-picker {
+            width: 50px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .background-image-wrapper {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .background-image-wrapper.active {
+            display: block;
+        }
+        
+        .background-image-preview {
+            width: 100%;
+            height: 150px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-top: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .remove-background-btn {
+            background: rgba(255, 0, 0, 0.3);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .remove-background-btn:hover {
+            background: rgba(255, 0, 0, 0.5);
+        }
+        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -617,6 +735,8 @@
             <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
             <span id="volumeValue">50%</span>
         </div>
+        
+        <a href="#" class="download-btn" id="downloadBtn" download="visualization.png">📥 Download</a>
     </div>
     
     <button class="settings-toggle" id="settingsToggle">⚙️</button>
@@ -649,6 +769,36 @@
                 <div class="color-option" data-theme="ocean" style="background: linear-gradient(45deg, #1a2980, #26d0ce);"></div>
                 <div class="color-option" data-theme="fire" style="background: linear-gradient(45deg, #f12711, #f5af19);"></div>
                 <div class="color-option" data-theme="neon" style="background: linear-gradient(45deg, #ff0099, #493240);"></div>
+            </div>
+        </div>
+        
+        <div class="setting-group">
+            <label class="setting-label">Background Options</label>
+            <div class="background-options">
+                <div class="background-option">
+                    <input type="radio" id="bgDefault" name="background" value="default" checked>
+                    <label for="bgDefault">Default Gradient</label>
+                </div>
+                <div class="background-option">
+                    <input type="radio" id="bgColor" name="background" value="color">
+                    <label for="bgColor">Solid Color</label>
+                </div>
+                <div class="background-option">
+                    <input type="radio" id="bgImage" name="background" value="image">
+                    <label for="bgImage">Custom Image</label>
+                </div>
+            </div>
+            
+            <div class="color-picker-wrapper" id="colorPickerWrapper">
+                <label>Background Color:</label>
+                <input type="color" class="color-picker" id="bgColorPicker" value="#000000">
+            </div>
+            
+            <div class="background-image-wrapper" id="bgImageWrapper">
+                <input type="file" id="bgImageInput" accept="image/*" style="display: none;">
+                <button class="btn" id="bgImageBtn" style="width: 100%; margin-top: 10px;">Choose Image</button>
+                <img class="background-image-preview" id="bgImagePreview" style="display: none;">
+                <button class="remove-background-btn" id="removeBgBtn" style="display: none;">Remove Image</button>
             </div>
         </div>
         
@@ -707,6 +857,10 @@
                 <span>Previous Mode</span>
                 <span class="shortcut-key">←</span>
             </div>
+            <div class="shortcut-item">
+                <span>Download</span>
+                <span class="shortcut-key">D</span>
+            </div>
         </div>
     </div>
     
@@ -734,6 +888,12 @@
                 this.sensitivity = 70;
                 this.smoothing = 80;
                 this.barCount = 128;
+                
+                // Background settings
+                this.backgroundType = 'default';
+                this.backgroundColor = '#000000';
+                this.backgroundImage = null;
+                this.backgroundImageLoaded = false;
                 
                 // Advanced effects
                 this.particles = [];
@@ -830,12 +990,14 @@
                 const volumeSlider = document.getElementById('volumeSlider');
                 const volumeValue = document.getElementById('volumeValue');
                 const fullscreenBtn = document.getElementById('fullscreenBtn');
+                const downloadBtn = document.getElementById('downloadBtn');
                 
                 fileInput.addEventListener('change', (e) => this.loadAudioFile(e.target.files[0]));
                 playBtn.addEventListener('click', () => this.play());
                 pauseBtn.addEventListener('click', () => this.pause());
                 micBtn.addEventListener('click', () => this.toggleMicrophone());
                 fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+                downloadBtn.addEventListener('click', (e) => this.downloadVisualization(e));
                 
                 volumeSlider.addEventListener('input', (e) => {
                     const volume = e.target.value;
@@ -845,12 +1007,104 @@
                     }
                 });
                 
+                // Background options
+                document.querySelectorAll('input[name="background"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        this.backgroundType = e.target.value;
+                        this.updateBackgroundOptions();
+                    });
+                });
+                
+                document.getElementById('bgColorPicker').addEventListener('change', (e) => {
+                    this.backgroundColor = e.target.value;
+                });
+                
+                document.getElementById('bgImageBtn').addEventListener('click', () => {
+                    document.getElementById('bgImageInput').click();
+                });
+                
+                document.getElementById('bgImageInput').addEventListener('change', (e) => {
+                    this.loadBackgroundImage(e.target.files[0]);
+                });
+                
+                document.getElementById('removeBgBtn').addEventListener('click', () => {
+                    this.removeBackgroundImage();
+                });
+                
                 // Handle audio context resume on user interaction
                 document.addEventListener('click', () => {
                     if (this.audioContext && this.audioContext.state === 'suspended') {
                         this.audioContext.resume();
                     }
                 }, { once: true });
+            }
+            
+            updateBackgroundOptions() {
+                const colorPickerWrapper = document.getElementById('colorPickerWrapper');
+                const bgImageWrapper = document.getElementById('bgImageWrapper');
+                
+                colorPickerWrapper.classList.remove('active');
+                bgImageWrapper.classList.remove('active');
+                
+                if (this.backgroundType === 'color') {
+                    colorPickerWrapper.classList.add('active');
+                } else if (this.backgroundType === 'image') {
+                    bgImageWrapper.classList.add('active');
+                }
+            }
+            
+            loadBackgroundImage(file) {
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        this.backgroundImage = img;
+                        this.backgroundImageLoaded = true;
+                        
+                        const preview = document.getElementById('bgImagePreview');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        document.getElementById('removeBgBtn').style.display = 'block';
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+            
+            removeBackgroundImage() {
+                this.backgroundImage = null;
+                this.backgroundImageLoaded = false;
+                
+                document.getElementById('bgImagePreview').style.display = 'none';
+                document.getElementById('removeBgBtn').style.display = 'none';
+                document.getElementById('bgImageInput').value = '';
+            }
+            
+            drawBackground() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                
+                if (this.backgroundType === 'default') {
+                    // Default gradient background
+                    const gradient = this.ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, Math.max(width, height)/2);
+                    gradient.addColorStop(0, 'rgba(26, 26, 46, 0.8)');
+                    gradient.addColorStop(1, 'rgba(10, 10, 15, 0.8)');
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(0, 0, width, height);
+                } else if (this.backgroundType === 'color') {
+                    // Solid color background
+                    this.ctx.fillStyle = this.backgroundColor;
+                    this.ctx.fillRect(0, 0, width, height);
+                } else if (this.backgroundType === 'image' && this.backgroundImageLoaded) {
+                    // Image background
+                    this.ctx.drawImage(this.backgroundImage, 0, 0, width, height);
+                    
+                    // Add overlay for better visibility
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    this.ctx.fillRect(0, 0, width, height);
+                }
             }
             
             setupSettings() {
@@ -933,6 +1187,9 @@
                             break;
                         case 's':
                             document.getElementById('settingsPanel').classList.toggle('open');
+                            break;
+                        case 'd':
+                            this.downloadVisualization(e);
                             break;
                         case 'arrowup':
                             e.preventDefault();
@@ -1095,6 +1352,31 @@
                         document.msExitFullscreen();
                     }
                 }
+            }
+            
+            downloadVisualization(e) {
+                e.preventDefault();
+                
+                // Create a temporary canvas with current visualization
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                tempCanvas.width = this.canvas.width;
+                tempCanvas.height = this.canvas.height;
+                
+                // Draw current frame
+                tempCtx.drawImage(this.canvas, 0, 0);
+                
+                // Convert to data URL
+                const dataURL = tempCanvas.toDataURL('image/png');
+                
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `cosmic-visualization-${Date.now()}.png`;
+                link.href = dataURL;
+                link.click();
+                
+                this.showError("Visualization downloaded successfully!");
             }
             
             createStars() {
@@ -1416,7 +1698,10 @@
                     this.detectBeat();
                     this.updateParticles();
                     
-                    // Clear canvas with fade effect
+                    // Draw background
+                    this.drawBackground();
+                    
+                    // Add fade effect for trails
                     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
                     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                     
