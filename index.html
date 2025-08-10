@@ -530,6 +530,34 @@
             box-shadow: 0 5px 15px rgba(131, 56, 236, 0.3);
         }
         
+        .error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .browser-warning {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 165, 0, 0.8);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            z-index: 2000;
+            display: none;
+            max-width: 80%;
+            text-align: center;
+        }
+        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
@@ -682,6 +710,9 @@
         </div>
     </div>
     
+    <div class="error-message" id="errorMessage"></div>
+    <div class="browser-warning" id="browserWarning"></div>
+    
     <script>
         class AudioVisualizer {
             constructor() {
@@ -695,6 +726,7 @@
                 this.animationId = null;
                 this.isPlaying = false;
                 this.isMicActive = false;
+                this.audioContextInitialized = false;
                 
                 // Visualization settings
                 this.vizMode = 'bars';
@@ -709,14 +741,73 @@
                 this.beatDetected = false;
                 this.beatThreshold = 150;
                 this.lastBeatTime = 0;
+                this.maxParticles = 500; // Limit particles for performance
                 
+                // Performance monitoring
+                this.frameCount = 0;
+                this.lastFrameTime = 0;
+                this.fps = 0;
+                this.targetFPS = 60;
+                
+                // Browser compatibility
+                this.isWebAudioSupported = !!(window.AudioContext || window.webkitAudioContext);
+                this.isCanvasSupported = !!(window.CanvasRenderingContext2D);
+                this.isFullscreenSupported = !!(document.fullscreenEnabled || 
+                                              document.webkitFullscreenEnabled || 
+                                              document.mozFullScreenEnabled ||
+                                              document.msFullscreenEnabled);
+                
+                this.checkBrowserSupport();
                 this.setupCanvas();
                 this.setupEventListeners();
-                this.setupAudioContext();
-                this.setupSettings();
-                this.setupKeyboardShortcuts();
                 this.createStars();
                 this.initParticles();
+            }
+            
+            checkBrowserSupport() {
+                const browserWarning = document.getElementById('browserWarning');
+                
+                if (!this.isWebAudioSupported) {
+                    browserWarning.textContent = "Web Audio API is not supported in your browser. Some features may not work.";
+                    browserWarning.style.display = "block";
+                }
+                
+                if (!this.isCanvasSupported) {
+                    browserWarning.textContent = "Canvas is not supported in your browser. The visualizer will not work.";
+                    browserWarning.style.display = "block";
+                }
+                
+                if (!this.isFullscreenSupported) {
+                    console.warn("Fullscreen API is not supported in your browser.");
+                }
+                
+                // Check for roundRect support
+                if (!this.ctx.roundRect) {
+                    // Polyfill for roundRect if not supported
+                    this.ctx.roundRect = function(x, y, width, height, radius) {
+                        this.beginPath();
+                        this.moveTo(x + radius, y);
+                        this.lineTo(x + width - radius, y);
+                        this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                        this.lineTo(x + width, y + height - radius);
+                        this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                        this.lineTo(x + radius, y + height);
+                        this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                        this.lineTo(x, y + radius);
+                        this.quadraticCurveTo(x, y, x + radius, y);
+                        this.closePath();
+                    };
+                }
+            }
+            
+            showError(message) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    errorMessage.style.display = 'none';
+                }, 5000);
             }
             
             setupCanvas() {
@@ -753,6 +844,13 @@
                         this.audio.volume = volume / 100;
                     }
                 });
+                
+                // Handle audio context resume on user interaction
+                document.addEventListener('click', () => {
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume();
+                    }
+                }, { once: true });
             }
             
             setupSettings() {
@@ -968,13 +1066,33 @@
             }
             
             toggleFullscreen() {
+                if (!this.isFullscreenSupported) {
+                    this.showError("Fullscreen is not supported in your browser");
+                    return;
+                }
+                
                 if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(err => {
-                        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                    });
+                    const element = document.documentElement;
+                    if (element.requestFullscreen) {
+                        element.requestFullscreen().catch(err => {
+                            this.showError(`Error attempting to enable fullscreen: ${err.message}`);
+                        });
+                    } else if (element.webkitRequestFullscreen) {
+                        element.webkitRequestFullscreen();
+                    } else if (element.mozRequestFullScreen) {
+                        element.mozRequestFullScreen();
+                    } else if (element.msRequestFullscreen) {
+                        element.msRequestFullscreen();
+                    }
                 } else {
                     if (document.exitFullscreen) {
                         document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
                     }
                 }
             }
@@ -1023,6 +1141,11 @@
             }
             
             updateParticles() {
+                // Limit particle count for performance
+                if (this.particles.length > this.maxParticles) {
+                    this.particles = this.particles.slice(-this.maxParticles);
+                }
+                
                 this.particles.forEach((particle, index) => {
                     particle.x += particle.vx;
                     particle.y += particle.vy;
@@ -1031,15 +1154,14 @@
                     if (particle.x < 0 || particle.x > this.canvas.width || 
                         particle.y < 0 || particle.y > this.canvas.height || 
                         particle.life <= 0) {
-                        this.particles[index] = {
-                            x: Math.random() * this.canvas.width,
-                            y: Math.random() * this.canvas.height,
-                            vx: (Math.random() - 0.5) * 2,
-                            vy: (Math.random() - 0.5) * 2,
-                            size: Math.random() * 3 + 1,
-                            color: this.getRandomColor(),
-                            life: 1
-                        };
+                        // Recycle particles instead of creating new ones
+                        particle.x = Math.random() * this.canvas.width;
+                        particle.y = Math.random() * this.canvas.height;
+                        particle.vx = (Math.random() - 0.5) * 2;
+                        particle.vy = (Math.random() - 0.5) * 2;
+                        particle.size = Math.random() * 3 + 1;
+                        particle.color = this.getRandomColor();
+                        particle.life = 1;
                     }
                 });
             }
@@ -1074,8 +1196,9 @@
                     this.lastBeatTime = currentTime;
                     this.beatDetected = true;
                     
-                    // Create burst of particles on beat
-                    for (let i = 0; i < 20; i++) {
+                    // Create burst of particles on beat (limited for performance)
+                    const particleCount = Math.min(20, this.maxParticles - this.particles.length);
+                    for (let i = 0; i < particleCount; i++) {
                         this.particles.push({
                             x: this.canvas.width / 2,
                             y: this.canvas.height / 2,
@@ -1095,43 +1218,64 @@
             }
             
             async setupAudioContext() {
+                if (!this.isWebAudioSupported) {
+                    this.showError("Web Audio API is not supported in your browser");
+                    return;
+                }
+                
                 try {
-                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    this.analyser = this.audioContext.createAnalyser();
-                    this.analyser.fftSize = this.barCount * 2;
-                    this.analyser.smoothingTimeConstant = this.smoothing / 100;
-                    
-                    const bufferLength = this.analyser.frequencyBinCount;
-                    this.dataArray = new Uint8Array(bufferLength);
+                    // Initialize audio context on first user interaction
+                    if (!this.audioContextInitialized) {
+                        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        this.analyser = this.audioContext.createAnalyser();
+                        this.analyser.fftSize = this.barCount * 2;
+                        this.analyser.smoothingTimeConstant = this.smoothing / 100;
+                        
+                        const bufferLength = this.analyser.frequencyBinCount;
+                        this.dataArray = new Uint8Array(bufferLength);
+                        this.audioContextInitialized = true;
+                    }
                 } catch (error) {
                     console.error('Error setting up audio context:', error);
+                    this.showError("Failed to initialize audio context");
                 }
             }
             
             async loadAudioFile(file) {
                 if (!file) return;
+                
                 try {
                     this.stopMicrophone();
                     this.stop();
+                    
+                    // Initialize audio context if not already done
+                    await this.setupAudioContext();
+                    
                     const trackName = document.getElementById('trackName');
                     trackName.textContent = `🎵 ${file.name}`;
+                    
                     this.audio = new Audio();
                     this.audio.src = URL.createObjectURL(file);
                     this.audio.volume = document.getElementById('volumeSlider').value / 100;
+                    
                     if (this.source) {
                         this.source.disconnect();
                     }
+                    
                     this.source = this.audioContext.createMediaElementSource(this.audio);
                     this.source.connect(this.analyser);
                     this.analyser.connect(this.audioContext.destination);
+                    
                     this.audio.addEventListener('ended', () => {
                         this.isPlaying = false;
                         this.updateButtons();
                     });
+                    
                     document.getElementById('playBtn').disabled = false;
                     document.getElementById('pauseBtn').disabled = false;
                 } catch (error) {
                     console.error('Error loading audio file:', error);
+                    this.showError("Error loading audio file");
                     document.getElementById('trackName').textContent = 'Error loading audio file';
                 }
             }
@@ -1148,11 +1292,15 @@
                 try {
                     this.stop();
                     
+                    // Initialize audio context if not already done
+                    await this.setupAudioContext();
+                    
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     
                     if (this.source) {
                         this.source.disconnect();
                     }
+                    
                     this.source = this.audioContext.createMediaStreamSource(stream);
                     this.source.connect(this.analyser);
                     this.isMicActive = true;
@@ -1165,6 +1313,7 @@
                     this.startVisualization();
                 } catch (error) {
                     console.error('Error accessing microphone:', error);
+                    this.showError("Microphone access denied or not available");
                     document.getElementById('trackName').textContent = 'Microphone access denied';
                 }
             }
@@ -1187,10 +1336,22 @@
             
             play() {
                 if (this.audio && !this.isPlaying) {
-                    this.audio.play();
-                    this.isPlaying = true;
-                    this.updateButtons();
-                    this.startVisualization();
+                    // Handle autoplay restrictions
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume().then(() => {
+                            this.audio.play();
+                            this.isPlaying = true;
+                            this.updateButtons();
+                            this.startVisualization();
+                        }).catch(err => {
+                            this.showError("Playback failed. Please interact with the page first.");
+                        });
+                    } else {
+                        this.audio.play();
+                        this.isPlaying = true;
+                        this.updateButtons();
+                        this.startVisualization();
+                    }
                 }
             }
             
@@ -1229,7 +1390,25 @@
             startVisualization() {
                 if (!this.analyser) return;
                 
-                const draw = () => {
+                const draw = (timestamp) => {
+                    // Performance monitoring
+                    if (this.lastFrameTime) {
+                        const delta = timestamp - this.lastFrameTime;
+                        this.frameCount++;
+                        
+                        if (this.frameCount % 30 === 0) {
+                            this.fps = Math.round(1000 / delta);
+                            
+                            // Adjust quality based on performance
+                            if (this.fps < 30 && this.maxParticles > 100) {
+                                this.maxParticles -= 50;
+                            } else if (this.fps > 50 && this.maxParticles < 500) {
+                                this.maxParticles += 50;
+                            }
+                        }
+                    }
+                    this.lastFrameTime = timestamp;
+                    
                     this.animationId = requestAnimationFrame(draw);
                     this.analyser.getByteFrequencyData(this.dataArray);
                     
@@ -1644,15 +1823,18 @@
                         const x = (i / this.dataArray.length) * width;
                         const y = height - (intensity * height * (this.sensitivity / 100));
                         
-                        this.particles.push({
-                            x: x,
-                            y: y,
-                            vx: (Math.random() - 0.5) * 5,
-                            vy: -Math.random() * 5 - 2,
-                            size: intensity * 5 + 2,
-                            color: this.getRandomColor(),
-                            life: 1
-                        });
+                        // Only add particles if we're under the limit
+                        if (this.particles.length < this.maxParticles) {
+                            this.particles.push({
+                                x: x,
+                                y: y,
+                                vx: (Math.random() - 0.5) * 5,
+                                vy: -Math.random() * 5 - 2,
+                                size: intensity * 5 + 2,
+                                color: this.getRandomColor(),
+                                life: 1
+                            });
+                        }
                     }
                 }
             }
@@ -1705,7 +1887,22 @@
         
         // Initialize the visualizer when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new AudioVisualizer();
+            const visualizer = new AudioVisualizer();
+            
+            // Setup event listeners that require the visualizer instance
+            document.getElementById('settingsToggle').addEventListener('click', () => {
+                document.getElementById('settingsPanel').classList.add('open');
+            });
+            
+            document.getElementById('closeSettings').addEventListener('click', () => {
+                document.getElementById('settingsPanel').classList.remove('open');
+            });
+            
+            // Setup keyboard shortcuts
+            visualizer.setupKeyboardShortcuts();
+            
+            // Setup settings
+            visualizer.setupSettings();
         });
     </script>
 </body>
