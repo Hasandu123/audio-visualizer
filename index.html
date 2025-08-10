@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Visualizer - Music to Motion</title>
+    <title>Audio Visualizer - Cosmic Sound Experience</title>
     <style>
         * {
             margin: 0;
@@ -12,47 +12,94 @@
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             color: white;
             overflow-x: hidden;
+            position: relative;
         }
+        
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%);
+            z-index: -2;
+        }
+        
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
         .header {
             text-align: center;
             padding: 1.5rem;
             z-index: 10;
             width: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
         }
+        
         .header h1 {
             font-size: 3rem;
             font-weight: 300;
             margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(131, 56, 236, 0.5);
         }
+        
         .header p {
             font-size: 1.2rem;
             opacity: 0.9;
+            color: #a8a8b3;
         }
+        
         .visualizer-container {
             position: relative;
             width: 100%;
             max-width: 1200px;
-            height: 400px;
+            height: 500px;
             margin: 1rem 0;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            background: rgba(0,0,0,0.2);
+            box-shadow: 0 20px 60px rgba(131, 56, 236, 0.3);
+            background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         #visualizer {
             width: 100%;
             height: 100%;
             display: block;
         }
+        
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -60,37 +107,60 @@
             justify-content: center;
             align-items: center;
             padding: 1.5rem;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
             margin: 1rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         .file-input-wrapper {
             position: relative;
             overflow: hidden;
             display: inline-block;
         }
+        
         .file-input-wrapper input[type=file] {
             position: absolute;
             left: -9999px;
         }
+        
         .file-input-label {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            background: linear-gradient(45deg, #ff006e, #8338ec);
             color: white;
             padding: 12px 24px;
             border-radius: 25px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
-            box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
+            box-shadow: 0 4px 20px rgba(255, 0, 110, 0.4);
+            position: relative;
+            overflow: hidden;
         }
+        
+        .file-input-label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .file-input-label:hover::before {
+            left: 100%;
+        }
+        
         .file-input-label:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(238, 90, 36, 0.6);
+            box-shadow: 0 6px 30px rgba(255, 0, 110, 0.6);
         }
+        
         .btn {
-            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            background: linear-gradient(45deg, #3a86ff, #8338ec);
             color: white;
             border: none;
             padding: 12px 24px;
@@ -98,256 +168,421 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 500;
-            box-shadow: 0 4px 15px rgba(68, 160, 141, 0.4);
+            box-shadow: 0 4px 20px rgba(58, 134, 255, 0.4);
+            position: relative;
+            overflow: hidden;
         }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(68, 160, 141, 0.6);
+            box-shadow: 0 6px 30px rgba(58, 134, 255, 0.6);
         }
+        
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
+        
         .volume-control {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
             padding: 10px 20px;
             border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         .volume-slider {
             width: 120px;
             height: 6px;
             border-radius: 3px;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.2);
             outline: none;
             -webkit-appearance: none;
         }
+        
         .volume-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #4ecdc4;
+            background: linear-gradient(45deg, #3a86ff, #8338ec);
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(58, 134, 255, 0.5);
         }
+        
         .volume-slider::-moz-range-thumb {
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: #4ecdc4;
+            background: linear-gradient(45deg, #3a86ff, #8338ec);
             cursor: pointer;
             border: none;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 10px rgba(58, 134, 255, 0.5);
         }
+        
         .track-info {
             text-align: center;
             margin: 1rem 0;
             padding: 1rem;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(20px);
             min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
             width: 90%;
             max-width: 800px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
+        
         .track-name {
             font-size: 1.1rem;
             font-weight: 500;
+            background: linear-gradient(45deg, #ff006e, #3a86ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+        
         .status {
             font-size: 0.9rem;
             opacity: 0.8;
+            color: #a8a8b3;
         }
+        
         .settings-panel {
             position: fixed;
             top: 0;
-            right: -350px;
-            width: 350px;
+            right: -400px;
+            width: 400px;
             height: 100vh;
-            background: rgba(30, 30, 40, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(to bottom, rgba(20, 20, 30, 0.98), rgba(10, 10, 20, 0.98));
+            backdrop-filter: blur(20px);
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.8);
             padding: 2rem;
-            transition: right 0.3s ease;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
             overflow-y: auto;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         .settings-panel.open {
             right: 0;
         }
+        
         .settings-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 1rem;
         }
+        
         .settings-title {
-            font-size: 1.5rem;
-            font-weight: 500;
+            font-size: 1.8rem;
+            font-weight: 300;
+            background: linear-gradient(45deg, #ff006e, #8338ec);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+        
         .close-settings {
             background: none;
             border: none;
             color: white;
             font-size: 1.5rem;
             cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .close-settings:hover {
-            transform: rotate(90deg);
-        }
-        .setting-group {
-            margin-bottom: 1.5rem;
-        }
-        .setting-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        .setting-control {
-            width: 100%;
-            padding: 0.5rem;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .setting-control option {
-            background: #333;
-        }
-        .color-options {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .color-option {
+            transition: all 0.3s ease;
             width: 40px;
             height: 40px;
             border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-settings:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(90deg);
+        }
+        
+        .setting-group {
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .setting-label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 500;
+            color: #e0e0e0;
+            font-size: 1.1rem;
+        }
+        
+        .setting-control {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .setting-control:focus {
+            outline: none;
+            border-color: #8338ec;
+            box-shadow: 0 0 20px rgba(131, 56, 236, 0.3);
+        }
+        
+        .setting-control option {
+            background: #1a1a2e;
+        }
+        
+        .color-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .color-option {
+            width: 100%;
+            height: 60px;
+            border-radius: 10px;
             cursor: pointer;
             border: 3px solid transparent;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .color-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .color-option:hover::before {
+            opacity: 1;
+        }
+        
         .color-option:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
         }
+        
         .color-option.selected {
             border-color: white;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
         }
+        
         .settings-toggle {
             position: fixed;
             top: 20px;
             right: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
+            background: linear-gradient(45deg, #ff006e, #8338ec);
             border: none;
             color: white;
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             cursor: pointer;
             z-index: 999;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 25px rgba(131, 56, 236, 0.4);
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        
         .settings-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(30deg);
+            transform: rotate(30deg) scale(1.1);
+            box-shadow: 0 8px 35px rgba(131, 56, 236, 0.6);
         }
+        
         .shortcuts-info {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            font-size: 0.9rem;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        .shortcuts-info h3 {
+            margin-bottom: 1rem;
+            color: #e0e0e0;
+            font-weight: 400;
+        }
+        
         .shortcut-item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
         }
+        
         .shortcut-key {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
+            background: linear-gradient(45deg, #3a86ff, #8338ec);
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
             font-family: monospace;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 10px rgba(58, 134, 255, 0.3);
         }
+        
         .fullscreen-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            border: none;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             border-radius: 50%;
-            font-size: 1rem;
+            font-size: 1.2rem;
             cursor: pointer;
             z-index: 100;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        
         .fullscreen-btn:hover {
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(131, 56, 236, 0.5);
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(131, 56, 236, 0.5);
         }
+        
+        .mode-indicator {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 100;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .preset-btn:hover {
+            background: rgba(131, 56, 236, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(131, 56, 236, 0.3);
+        }
+        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
             }
             
             .visualizer-container {
-                height: 300px;
+                height: 350px;
                 margin: 1rem;
             }
             
             .controls {
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 0.8rem;
             }
             
             .settings-panel {
                 width: 100%;
                 right: -100%;
             }
+            
+            .color-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
+    <div class="stars" id="stars"></div>
+    
     <div class="header">
-        <h1>🎵 Audio Visualizer</h1>
-        <p>Transform your music into mesmerizing visual art</p>
+        <h1>🌌 Cosmic Audio Visualizer</h1>
+        <p>Experience your music in a universe of visual wonder</p>
     </div>
     
     <div class="visualizer-container">
         <canvas id="visualizer"></canvas>
         <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
+        <div class="mode-indicator" id="modeIndicator">Frequency Bars</div>
     </div>
     
     <div class="track-info">
-        <div class="track-name" id="trackName">Upload a song to begin visualization</div>
+        <div class="track-name" id="trackName">Upload a song to begin your cosmic journey</div>
     </div>
     
     <div class="controls">
         <div class="file-input-wrapper">
             <input type="file" id="audioFile" accept="audio/*">
-            <label for="audioFile" class="file-input-label">📁 Choose Audio File</label>
+            <label for="audioFile" class="file-input-label">🎵 Choose Audio</label>
         </div>
         
         <button class="btn" id="playBtn" disabled>▶️ Play</button>
         <button class="btn" id="pauseBtn" disabled>⏸️ Pause</button>
-        <button class="btn" id="micBtn">🎤 Use Microphone</button>
+        <button class="btn" id="micBtn">🎤 Microphone</button>
         
         <div class="volume-control">
             <span>🔊</span>
@@ -360,7 +595,7 @@
     
     <div class="settings-panel" id="settingsPanel">
         <div class="settings-header">
-            <h2 class="settings-title">Visualization Settings</h2>
+            <h2 class="settings-title">Cosmic Controls</h2>
             <button class="close-settings" id="closeSettings">✕</button>
         </div>
         
@@ -370,18 +605,22 @@
                 <option value="bars">Frequency Bars</option>
                 <option value="circle">Circular Spectrum</option>
                 <option value="waveform">Waveform</option>
+                <option value="spiral">Spiral Galaxy</option>
+                <option value="tunnel">Cosmic Tunnel</option>
+                <option value="particles">Particle Storm</option>
+                <option value="matrix">Digital Matrix</option>
             </select>
         </div>
         
         <div class="setting-group">
             <label class="setting-label">Color Theme</label>
             <div class="color-options">
-                <div class="color-option selected" data-theme="rainbow" style="background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);"></div>
-                <div class="color-option" data-theme="ocean" style="background: linear-gradient(to right, #1a2980, #26d0ce);"></div>
-                <div class="color-option" data-theme="sunset" style="background: linear-gradient(to right, #ff7e5f, #feb47b);"></div>
-                <div class="color-option" data-theme="forest" style="background: linear-gradient(to right, #134e5e, #71b280);"></div>
-                <div class="color-option" data-theme="fire" style="background: linear-gradient(to right, #f12711, #f5af19);"></div>
-                <div class="color-option" data-theme="purple" style="background: linear-gradient(to right, #667eea, #764ba2);"></div>
+                <div class="color-option selected" data-theme="cosmic" style="background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff);"></div>
+                <div class="color-option" data-theme="aurora" style="background: linear-gradient(45deg, #00f260, #0575e6);"></div>
+                <div class="color-option" data-theme="sunset" style="background: linear-gradient(45deg, #ff7e5f, #feb47b);"></div>
+                <div class="color-option" data-theme="ocean" style="background: linear-gradient(45deg, #1a2980, #26d0ce);"></div>
+                <div class="color-option" data-theme="fire" style="background: linear-gradient(45deg, #f12711, #f5af19);"></div>
+                <div class="color-option" data-theme="neon" style="background: linear-gradient(45deg, #ff0099, #493240);"></div>
             </div>
         </div>
         
@@ -400,8 +639,18 @@
             <input type="range" class="setting-control" id="barCount" min="32" max="256" value="128" step="32">
         </div>
         
+        <div class="setting-group">
+            <label class="setting-label">Visual Presets</label>
+            <div class="preset-buttons">
+                <button class="preset-btn" data-preset="chill">Chill Vibes</button>
+                <button class="preset-btn" data-preset="party">Party Mode</button>
+                <button class="preset-btn" data-preset="ambient">Ambient</button>
+                <button class="preset-btn" data-preset="intense">Intense</button>
+            </div>
+        </div>
+        
         <div class="shortcuts-info">
-            <h3 style="margin-bottom: 0.5rem;">Keyboard Shortcuts</h3>
+            <h3>Keyboard Shortcuts</h3>
             <div class="shortcut-item">
                 <span>Play/Pause</span>
                 <span class="shortcut-key">Space</span>
@@ -422,6 +671,14 @@
                 <span>Volume Up/Down</span>
                 <span class="shortcut-key">↑ / ↓</span>
             </div>
+            <div class="shortcut-item">
+                <span>Next Mode</span>
+                <span class="shortcut-key">→</span>
+            </div>
+            <div class="shortcut-item">
+                <span>Previous Mode</span>
+                <span class="shortcut-key">←</span>
+            </div>
         </div>
     </div>
     
@@ -441,16 +698,25 @@
                 
                 // Visualization settings
                 this.vizMode = 'bars';
-                this.colorTheme = 'rainbow';
+                this.colorTheme = 'cosmic';
                 this.sensitivity = 70;
                 this.smoothing = 80;
                 this.barCount = 128;
+                
+                // Advanced effects
+                this.particles = [];
+                this.time = 0;
+                this.beatDetected = false;
+                this.beatThreshold = 150;
+                this.lastBeatTime = 0;
                 
                 this.setupCanvas();
                 this.setupEventListeners();
                 this.setupAudioContext();
                 this.setupSettings();
                 this.setupKeyboardShortcuts();
+                this.createStars();
+                this.initParticles();
             }
             
             setupCanvas() {
@@ -505,6 +771,7 @@
                 // Visualization mode
                 document.getElementById('vizMode').addEventListener('change', (e) => {
                     this.vizMode = e.target.value;
+                    this.updateModeIndicator();
                 });
                 
                 // Color theme
@@ -540,6 +807,13 @@
                         this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
                     }
                 });
+                
+                // Presets
+                document.querySelectorAll('.preset-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.applyPreset(btn.dataset.preset);
+                    });
+                });
             }
             
             setupKeyboardShortcuts() {
@@ -570,8 +844,114 @@
                             e.preventDefault();
                             this.adjustVolume(-5);
                             break;
+                        case 'arrowright':
+                            e.preventDefault();
+                            this.nextMode();
+                            break;
+                        case 'arrowleft':
+                            e.preventDefault();
+                            this.previousMode();
+                            break;
                     }
                 });
+            }
+            
+            updateModeIndicator() {
+                const modeNames = {
+                    'bars': 'Frequency Bars',
+                    'circle': 'Circular Spectrum',
+                    'waveform': 'Waveform',
+                    'spiral': 'Spiral Galaxy',
+                    'tunnel': 'Cosmic Tunnel',
+                    'particles': 'Particle Storm',
+                    'matrix': 'Digital Matrix'
+                };
+                document.getElementById('modeIndicator').textContent = modeNames[this.vizMode];
+            }
+            
+            nextMode() {
+                const modes = ['bars', 'circle', 'waveform', 'spiral', 'tunnel', 'particles', 'matrix'];
+                const currentIndex = modes.indexOf(this.vizMode);
+                const nextIndex = (currentIndex + 1) % modes.length;
+                this.vizMode = modes[nextIndex];
+                document.getElementById('vizMode').value = this.vizMode;
+                this.updateModeIndicator();
+            }
+            
+            previousMode() {
+                const modes = ['bars', 'circle', 'waveform', 'spiral', 'tunnel', 'particles', 'matrix'];
+                const currentIndex = modes.indexOf(this.vizMode);
+                const prevIndex = (currentIndex - 1 + modes.length) % modes.length;
+                this.vizMode = modes[prevIndex];
+                document.getElementById('vizMode').value = this.vizMode;
+                this.updateModeIndicator();
+            }
+            
+            applyPreset(preset) {
+                const presets = {
+                    chill: {
+                        mode: 'waveform',
+                        theme: 'ocean',
+                        sensitivity: 50,
+                        smoothing: 90,
+                        barCount: 64
+                    },
+                    party: {
+                        mode: 'particles',
+                        theme: 'neon',
+                        sensitivity: 90,
+                        smoothing: 50,
+                        barCount: 256
+                    },
+                    ambient: {
+                        mode: 'spiral',
+                        theme: 'aurora',
+                        sensitivity: 40,
+                        smoothing: 95,
+                        barCount: 128
+                    },
+                    intense: {
+                        mode: 'tunnel',
+                        theme: 'fire',
+                        sensitivity: 100,
+                        smoothing: 30,
+                        barCount: 256
+                    }
+                };
+                
+                const config = presets[preset];
+                if (config) {
+                    this.vizMode = config.mode;
+                    this.colorTheme = config.theme;
+                    this.sensitivity = config.sensitivity;
+                    this.smoothing = config.smoothing;
+                    this.barCount = config.barCount;
+                    
+                    // Update UI
+                    document.getElementById('vizMode').value = config.mode;
+                    document.getElementById('sensitivity').value = config.sensitivity;
+                    document.getElementById('smoothing').value = config.smoothing;
+                    document.getElementById('barCount').value = config.barCount;
+                    document.getElementById('sensitivityValue').textContent = config.sensitivity;
+                    document.getElementById('smoothingValue').textContent = config.smoothing;
+                    document.getElementById('barCountValue').textContent = config.barCount;
+                    
+                    // Update color theme selection
+                    document.querySelectorAll('.color-option').forEach(option => {
+                        option.classList.remove('selected');
+                        if (option.dataset.theme === config.theme) {
+                            option.classList.add('selected');
+                        }
+                    });
+                    
+                    this.updateModeIndicator();
+                    
+                    if (this.analyser) {
+                        this.analyser.fftSize = this.barCount * 2;
+                        this.analyser.smoothingTimeConstant = this.smoothing / 100;
+                        this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                    }
+                }
             }
             
             adjustVolume(change) {
@@ -599,6 +979,121 @@
                 }
             }
             
+            createStars() {
+                const starsContainer = document.getElementById('stars');
+                const starCount = 100;
+                
+                for (let i = 0; i < starCount; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.width = star.style.height = Math.random() * 3 + 'px';
+                    star.style.animationDelay = Math.random() * 3 + 's';
+                    starsContainer.appendChild(star);
+                }
+            }
+            
+            initParticles() {
+                for (let i = 0; i < 100; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        size: Math.random() * 3 + 1,
+                        color: this.getRandomColor(),
+                        life: 1
+                    });
+                }
+            }
+            
+            getRandomColor() {
+                const colors = {
+                    cosmic: ['#ff006e', '#8338ec', '#3a86ff'],
+                    aurora: ['#00f260', '#0575e6', '#00d2ff'],
+                    sunset: ['#ff7e5f', '#feb47b', '#ff6b6b'],
+                    ocean: ['#1a2980', '#26d0ce', '#00d2ff'],
+                    fire: ['#f12711', '#f5af19', '#ff6b6b'],
+                    neon: ['#ff0099', '#493240', '#ff006e']
+                };
+                
+                const themeColors = colors[this.colorTheme] || colors.cosmic;
+                return themeColors[Math.floor(Math.random() * themeColors.length)];
+            }
+            
+            updateParticles() {
+                this.particles.forEach((particle, index) => {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.life -= 0.01;
+                    
+                    if (particle.x < 0 || particle.x > this.canvas.width || 
+                        particle.y < 0 || particle.y > this.canvas.height || 
+                        particle.life <= 0) {
+                        this.particles[index] = {
+                            x: Math.random() * this.canvas.width,
+                            y: Math.random() * this.canvas.height,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            size: Math.random() * 3 + 1,
+                            color: this.getRandomColor(),
+                            life: 1
+                        };
+                    }
+                });
+            }
+            
+            drawParticles() {
+                this.particles.forEach(particle => {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = particle.life;
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.shadowColor = particle.color;
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.restore();
+                });
+            }
+            
+            detectBeat() {
+                if (!this.dataArray) return false;
+                
+                // Check low frequencies for beat
+                const bassRange = Math.floor(this.dataArray.length * 0.1);
+                let bassSum = 0;
+                for (let i = 0; i < bassRange; i++) {
+                    bassSum += this.dataArray[i];
+                }
+                const bassAverage = bassSum / bassRange;
+                
+                const currentTime = Date.now();
+                if (bassAverage > this.beatThreshold && currentTime - this.lastBeatTime > 200) {
+                    this.lastBeatTime = currentTime;
+                    this.beatDetected = true;
+                    
+                    // Create burst of particles on beat
+                    for (let i = 0; i < 20; i++) {
+                        this.particles.push({
+                            x: this.canvas.width / 2,
+                            y: this.canvas.height / 2,
+                            vx: (Math.random() - 0.5) * 10,
+                            vy: (Math.random() - 0.5) * 10,
+                            size: Math.random() * 5 + 2,
+                            color: this.getRandomColor(),
+                            life: 1
+                        });
+                    }
+                    
+                    return true;
+                }
+                
+                this.beatDetected = false;
+                return false;
+            }
+            
             async setupAudioContext() {
                 try {
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -619,7 +1114,7 @@
                     this.stopMicrophone();
                     this.stop();
                     const trackName = document.getElementById('trackName');
-                    trackName.textContent = `📁 ${file.name}`;
+                    trackName.textContent = `🎵 ${file.name}`;
                     this.audio = new Audio();
                     this.audio.src = URL.createObjectURL(file);
                     this.audio.volume = document.getElementById('volumeSlider').value / 100;
@@ -682,10 +1177,10 @@
                 this.isMicActive = false;
                 this.isPlaying = false;
                 
-                document.getElementById('micBtn').textContent = '🎤 Use Microphone';
+                document.getElementById('micBtn').textContent = '🎤 Microphone';
                 document.getElementById('playBtn').disabled = this.audio ? false : true;
                 document.getElementById('pauseBtn').disabled = this.audio ? false : true;
-                document.getElementById('trackName').textContent = 'Upload a song to begin visualization';
+                document.getElementById('trackName').textContent = 'Upload a song to begin your cosmic journey';
                 
                 this.stop();
             }
@@ -738,6 +1233,14 @@
                     this.animationId = requestAnimationFrame(draw);
                     this.analyser.getByteFrequencyData(this.dataArray);
                     
+                    this.time += 0.01;
+                    this.detectBeat();
+                    this.updateParticles();
+                    
+                    // Clear canvas with fade effect
+                    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    
                     switch(this.vizMode) {
                         case 'bars':
                             this.drawBars();
@@ -748,7 +1251,22 @@
                         case 'waveform':
                             this.drawWaveform();
                             break;
+                        case 'spiral':
+                            this.drawSpiral();
+                            break;
+                        case 'tunnel':
+                            this.drawTunnel();
+                            break;
+                        case 'particles':
+                            this.drawParticleMode();
+                            break;
+                        case 'matrix':
+                            this.drawMatrix();
+                            break;
                     }
+                    
+                    // Always draw particles for ambient effect
+                    this.drawParticles();
                 };
                 
                 draw();
@@ -766,8 +1284,6 @@
                 const width = this.canvas.width / window.devicePixelRatio;
                 const height = this.canvas.height / window.devicePixelRatio;
                 
-                this.ctx.clearRect(0, 0, width, height);
-                
                 const barWidth = width / this.dataArray.length * 2;
                 let x = 0;
                 
@@ -779,49 +1295,60 @@
                     
                     // Apply color theme
                     switch(this.colorTheme) {
-                        case 'rainbow':
-                            const hue = (i / this.dataArray.length) * 360;
+                        case 'cosmic':
+                            const hue = (i / this.dataArray.length) * 360 + this.time * 50;
                             gradient.addColorStop(0, `hsl(${hue}, 70%, 50%)`);
-                            gradient.addColorStop(1, `hsl(${hue}, 70%, 80%)`);
+                            gradient.addColorStop(1, `hsl(${hue + 60}, 70%, 80%)`);
                             break;
-                        case 'ocean':
-                            gradient.addColorStop(0, '#1a2980');
-                            gradient.addColorStop(1, '#26d0ce');
+                        case 'aurora':
+                            gradient.addColorStop(0, '#00f260');
+                            gradient.addColorStop(1, '#0575e6');
                             break;
                         case 'sunset':
                             gradient.addColorStop(0, '#ff7e5f');
                             gradient.addColorStop(1, '#feb47b');
                             break;
-                        case 'forest':
-                            gradient.addColorStop(0, '#134e5e');
-                            gradient.addColorStop(1, '#71b280');
+                        case 'ocean':
+                            gradient.addColorStop(0, '#1a2980');
+                            gradient.addColorStop(1, '#26d0ce');
                             break;
                         case 'fire':
                             gradient.addColorStop(0, '#f12711');
                             gradient.addColorStop(1, '#f5af19');
                             break;
-                        case 'purple':
-                            gradient.addColorStop(0, '#667eea');
-                            gradient.addColorStop(1, '#764ba2');
+                        case 'neon':
+                            gradient.addColorStop(0, '#ff0099');
+                            gradient.addColorStop(1, '#493240');
                             break;
                     }
                     
                     this.ctx.fillStyle = gradient;
-                    this.ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
                     
-                    // Add glow effect
-                    if (this.colorTheme === 'rainbow') {
-                        const hue = (i / this.dataArray.length) * 360;
-                        this.ctx.shadowColor = `hsl(${hue}, 70%, 60%)`;
+                    // Add glow effect on beat
+                    if (this.beatDetected) {
+                        this.ctx.shadowColor = gradient;
+                        this.ctx.shadowBlur = 20;
                     } else {
                         this.ctx.shadowColor = gradient;
+                        this.ctx.shadowBlur = 10;
                     }
-                    this.ctx.shadowBlur = 10;
-                    this.ctx.fillRect(x, height - barHeight, barWidth - 2, barHeight);
-                    this.ctx.shadowBlur = 0;
+                    
+                    // Draw bar with rounded top
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(x, height - barHeight, barWidth - 2, barHeight, 5);
+                    this.ctx.fill();
+                    
+                    // Mirror effect
+                    this.ctx.globalAlpha = 0.3;
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(x, height, barWidth - 2, barHeight * 0.5, 5);
+                    this.ctx.fill();
+                    this.ctx.globalAlpha = 1;
                     
                     x += barWidth;
                 }
+                
+                this.ctx.shadowBlur = 0;
             }
             
             drawCircle() {
@@ -831,14 +1358,12 @@
                 const centerY = height / 2;
                 const radius = Math.min(width, height) * 0.3;
                 
-                this.ctx.clearRect(0, 0, width, height);
-                
                 const bars = this.dataArray.length;
                 const barWidth = (2 * Math.PI) / bars;
                 
                 for (let i = 0; i < bars; i++) {
                     const barHeight = (this.dataArray[i] / 255) * radius * (this.sensitivity / 100);
-                    const angle = barWidth * i;
+                    const angle = barWidth * i + this.time;
                     
                     const x1 = centerX + Math.cos(angle) * radius;
                     const y1 = centerY + Math.sin(angle) * radius;
@@ -846,48 +1371,62 @@
                     const y2 = centerY + Math.sin(angle) * (radius + barHeight);
                     
                     // Apply color theme
+                    let color;
                     switch(this.colorTheme) {
-                        case 'rainbow':
-                            const hue = (i / bars) * 360;
-                            this.ctx.strokeStyle = `hsl(${hue}, 70%, 60%)`;
-                            this.ctx.shadowColor = `hsl(${hue}, 70%, 60%)`;
+                        case 'cosmic':
+                            const hue = (i / bars) * 360 + this.time * 50;
+                            color = `hsl(${hue}, 70%, 60%)`;
                             break;
-                        case 'ocean':
-                            this.ctx.strokeStyle = '#26d0ce';
-                            this.ctx.shadowColor = '#26d0ce';
+                        case 'aurora':
+                            color = '#26d0ce';
                             break;
                         case 'sunset':
-                            this.ctx.strokeStyle = '#feb47b';
-                            this.ctx.shadowColor = '#feb47b';
+                            color = '#feb47b';
                             break;
-                        case 'forest':
-                            this.ctx.strokeStyle = '#71b280';
-                            this.ctx.shadowColor = '#71b280';
+                        case 'ocean':
+                            color = '#26d0ce';
                             break;
                         case 'fire':
-                            this.ctx.strokeStyle = '#f5af19';
-                            this.ctx.shadowColor = '#f5af19';
+                            color = '#f5af19';
                             break;
-                        case 'purple':
-                            this.ctx.strokeStyle = '#764ba2';
-                            this.ctx.shadowColor = '#764ba2';
+                        case 'neon':
+                            color = '#ff0099';
                             break;
                     }
                     
-                    this.ctx.lineWidth = 3;
-                    this.ctx.shadowBlur = 10;
+                    this.ctx.strokeStyle = color;
+                    this.ctx.lineWidth = 3 + (this.dataArray[i] / 255) * 5;
+                    
+                    if (this.beatDetected) {
+                        this.ctx.shadowColor = color;
+                        this.ctx.shadowBlur = 20;
+                    } else {
+                        this.ctx.shadowColor = color;
+                        this.ctx.shadowBlur = 10;
+                    }
+                    
                     this.ctx.beginPath();
                     this.ctx.moveTo(x1, y1);
                     this.ctx.lineTo(x2, y2);
                     this.ctx.stroke();
                 }
+                
+                // Draw center orb
+                const gradient = this.ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 50);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, 50 + Math.sin(this.time * 2) * 10, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.shadowBlur = 0;
             }
             
             drawWaveform() {
                 const width = this.canvas.width / window.devicePixelRatio;
                 const height = this.canvas.height / window.devicePixelRatio;
-                
-                this.ctx.clearRect(0, 0, width, height);
                 
                 // Get time domain data for waveform
                 const waveData = new Uint8Array(this.analyser.frequencyBinCount);
@@ -896,62 +1435,265 @@
                 this.ctx.lineWidth = 2;
                 
                 // Apply color theme
+                let gradient;
                 switch(this.colorTheme) {
-                    case 'rainbow':
-                        const gradient = this.ctx.createLinearGradient(0, 0, width, 0);
-                        gradient.addColorStop(0, 'red');
-                        gradient.addColorStop(0.17, 'orange');
-                        gradient.addColorStop(0.33, 'yellow');
-                        gradient.addColorStop(0.5, 'green');
-                        gradient.addColorStop(0.67, 'blue');
-                        gradient.addColorStop(0.83, 'indigo');
-                        gradient.addColorStop(1, 'violet');
-                        this.ctx.strokeStyle = gradient;
-                        this.ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+                    case 'cosmic':
+                        gradient = this.ctx.createLinearGradient(0, 0, width, 0);
+                        gradient.addColorStop(0, '#ff006e');
+                        gradient.addColorStop(0.5, '#8338ec');
+                        gradient.addColorStop(1, '#3a86ff');
                         break;
-                    case 'ocean':
-                        this.ctx.strokeStyle = '#26d0ce';
-                        this.ctx.shadowColor = '#26d0ce';
+                    case 'aurora':
+                        gradient = this.ctx.createLinearGradient(0, 0, width, 0);
+                        gradient.addColorStop(0, '#00f260');
+                        gradient.addColorStop(1, '#0575e6');
                         break;
                     case 'sunset':
-                        this.ctx.strokeStyle = '#feb47b';
-                        this.ctx.shadowColor = '#feb47b';
+                        gradient = this.ctx.createLinearGradient(0, 0, width, 0);
+                        gradient.addColorStop(0, '#ff7e5f');
+                        gradient.addColorStop(1, '#feb47b');
                         break;
-                    case 'forest':
-                        this.ctx.strokeStyle = '#71b280';
-                        this.ctx.shadowColor = '#71b280';
+                    case 'ocean':
+                        gradient = this.ctx.createLinearGradient(0, 0, width, 0);
+                        gradient.addColorStop(0, '#1a2980');
+                        gradient.addColorStop(1, '#26d0ce');
                         break;
                     case 'fire':
-                        this.ctx.strokeStyle = '#f5af19';
-                        this.ctx.shadowColor = '#f5af19';
+                        gradient = this.ctx.createLinearGradient(0, 0, width, 0);
+                        gradient.addColorStop(0, '#f12711');
+                        gradient.addColorStop(1, '#f5af19');
                         break;
-                    case 'purple':
-                        this.ctx.strokeStyle = '#764ba2';
-                        this.ctx.shadowColor = '#764ba2';
+                    case 'neon':
+                        gradient = this.ctx.createLinearGradient(0, 0, width, 0);
+                        gradient.addColorStop(0, '#ff0099');
+                        gradient.addColorStop(1, '#493240');
                         break;
                 }
                 
-                this.ctx.shadowBlur = 10;
+                this.ctx.strokeStyle = gradient;
                 
-                this.ctx.beginPath();
+                if (this.beatDetected) {
+                    this.ctx.shadowColor = gradient;
+                    this.ctx.shadowBlur = 20;
+                } else {
+                    this.ctx.shadowColor = gradient;
+                    this.ctx.shadowBlur = 10;
+                }
                 
-                const sliceWidth = width / waveData.length;
-                let x = 0;
-                
-                for (let i = 0; i < waveData.length; i++) {
-                    const v = waveData[i] / 128.0;
-                    const y = v * height / 2 * (this.sensitivity / 100);
+                // Draw multiple waveforms for layered effect
+                for (let layer = 0; layer < 3; layer++) {
+                    this.ctx.globalAlpha = 0.3 + layer * 0.3;
+                    this.ctx.beginPath();
                     
-                    if (i === 0) {
-                        this.ctx.moveTo(x, y);
-                    } else {
-                        this.ctx.lineTo(x, y);
+                    const sliceWidth = width / waveData.length;
+                    let x = 0;
+                    
+                    for (let i = 0; i < waveData.length; i++) {
+                        const v = waveData[i] / 128.0;
+                        const y = v * height / 2 * (this.sensitivity / 100) + layer * 20;
+                        
+                        if (i === 0) {
+                            this.ctx.moveTo(x, y);
+                        } else {
+                            this.ctx.lineTo(x, y);
+                        }
+                        
+                        x += sliceWidth;
                     }
                     
-                    x += sliceWidth;
+                    this.ctx.stroke();
                 }
                 
-                this.ctx.stroke();
+                this.ctx.globalAlpha = 1;
+                this.ctx.shadowBlur = 0;
+            }
+            
+            drawSpiral() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                
+                const maxRadius = Math.min(width, height) * 0.4;
+                const spirals = 3;
+                
+                for (let spiral = 0; spiral < spirals; spiral++) {
+                    this.ctx.beginPath();
+                    
+                    for (let i = 0; i < this.dataArray.length; i++) {
+                        const angle = (i / this.dataArray.length) * Math.PI * 8 + this.time + spiral * (Math.PI * 2 / spirals);
+                        const radius = (i / this.dataArray.length) * maxRadius;
+                        const barHeight = (this.dataArray[i] / 255) * 50 * (this.sensitivity / 100);
+                        
+                        const x = centerX + Math.cos(angle) * (radius + barHeight);
+                        const y = centerY + Math.sin(angle) * (radius + barHeight);
+                        
+                        if (i === 0) {
+                            this.ctx.moveTo(x, y);
+                        } else {
+                            this.ctx.lineTo(x, y);
+                        }
+                    }
+                    
+                    // Apply color theme
+                    let color;
+                    switch(this.colorTheme) {
+                        case 'cosmic':
+                            const hue = (spiral / spirals) * 360 + this.time * 50;
+                            color = `hsl(${hue}, 70%, 60%)`;
+                            break;
+                        case 'aurora':
+                            color = '#26d0ce';
+                            break;
+                        case 'sunset':
+                            color = '#feb47b';
+                            break;
+                        case 'ocean':
+                            color = '#26d0ce';
+                            break;
+                        case 'fire':
+                            color = '#f5af19';
+                            break;
+                        case 'neon':
+                            color = '#ff0099';
+                            break;
+                    }
+                    
+                    this.ctx.strokeStyle = color;
+                    this.ctx.lineWidth = 2;
+                    
+                    if (this.beatDetected) {
+                        this.ctx.shadowColor = color;
+                        this.ctx.shadowBlur = 20;
+                    } else {
+                        this.ctx.shadowColor = color;
+                        this.ctx.shadowBlur = 10;
+                    }
+                    
+                    this.ctx.stroke();
+                }
+                
+                this.ctx.shadowBlur = 0;
+            }
+            
+            drawTunnel() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                const centerX = width / 2;
+                const centerY = height / 2;
+                
+                const rings = 20;
+                const maxRadius = Math.min(width, height) * 0.5;
+                
+                for (let ring = 0; ring < rings; ring++) {
+                    const radius = ((ring + 1) / rings) * maxRadius;
+                    const dataIndex = Math.floor((ring / rings) * this.dataArray.length);
+                    const intensity = this.dataArray[dataIndex] / 255;
+                    
+                    // Apply color theme
+                    let color;
+                    switch(this.colorTheme) {
+                        case 'cosmic':
+                            const hue = (ring / rings) * 360 + this.time * 50;
+                            color = `hsla(${hue}, 70%, 60%, ${0.3 + intensity * 0.7})`;
+                            break;
+                        case 'aurora':
+                            color = `rgba(38, 208, 206, ${0.3 + intensity * 0.7})`;
+                            break;
+                        case 'sunset':
+                            color = `rgba(254, 180, 123, ${0.3 + intensity * 0.7})`;
+                            break;
+                        case 'ocean':
+                            color = `rgba(38, 208, 206, ${0.3 + intensity * 0.7})`;
+                            break;
+                        case 'fire':
+                            color = `rgba(245, 175, 25, ${0.3 + intensity * 0.7})`;
+                            break;
+                        case 'neon':
+                            color = `rgba(255, 0, 153, ${0.3 + intensity * 0.7})`;
+                            break;
+                    }
+                    
+                    this.ctx.strokeStyle = color;
+                    this.ctx.lineWidth = 3 + intensity * 10;
+                    
+                    if (this.beatDetected) {
+                        this.ctx.shadowColor = color;
+                        this.ctx.shadowBlur = 30;
+                    } else {
+                        this.ctx.shadowColor = color;
+                        this.ctx.shadowBlur = 10;
+                    }
+                    
+                    this.ctx.beginPath();
+                    this.ctx.arc(centerX, centerY, radius + Math.sin(this.time * 2 + ring) * 10, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                }
+                
+                this.ctx.shadowBlur = 0;
+            }
+            
+            drawParticleMode() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                
+                // Create particles based on frequency data
+                for (let i = 0; i < this.dataArray.length; i += 4) {
+                    const intensity = this.dataArray[i] / 255;
+                    if (intensity > 0.5) {
+                        const x = (i / this.dataArray.length) * width;
+                        const y = height - (intensity * height * (this.sensitivity / 100));
+                        
+                        this.particles.push({
+                            x: x,
+                            y: y,
+                            vx: (Math.random() - 0.5) * 5,
+                            vy: -Math.random() * 5 - 2,
+                            size: intensity * 5 + 2,
+                            color: this.getRandomColor(),
+                            life: 1
+                        });
+                    }
+                }
+            }
+            
+            drawMatrix() {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                
+                const columns = Math.floor(width / 20);
+                const columnWidth = width / columns;
+                
+                for (let i = 0; i < columns; i++) {
+                    const dataIndex = Math.floor((i / columns) * this.dataArray.length);
+                    const intensity = this.dataArray[dataIndex] / 255;
+                    
+                    const x = i * columnWidth;
+                    const barHeight = intensity * height * (this.sensitivity / 100);
+                    
+                    // Matrix green with variations
+                    const green = Math.floor(100 + intensity * 155);
+                    this.ctx.fillStyle = `rgba(0, ${green}, 0, ${0.7 + intensity * 0.3})`;
+                    
+                    if (this.beatDetected) {
+                        this.ctx.shadowColor = `rgba(0, ${green}, 0, 1)`;
+                        this.ctx.shadowBlur = 20;
+                    }
+                    
+                    // Draw falling characters
+                    this.ctx.font = `${12 + intensity * 8}px monospace`;
+                    
+                    for (let j = 0; j < barHeight / 20; j++) {
+                        const char = String.fromCharCode(0x30A0 + Math.random() * 96);
+                        const y = height - j * 20 - (this.time * 50) % 20;
+                        const alpha = 1 - (j / (barHeight / 20));
+                        
+                        this.ctx.fillStyle = `rgba(0, ${green}, 0, ${alpha * (0.7 + intensity * 0.3)})`;
+                        this.ctx.fillText(char, x, y);
+                    }
+                }
+                
+                this.ctx.shadowBlur = 0;
             }
             
             clearCanvas() {
